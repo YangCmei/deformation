@@ -24,7 +24,8 @@
 clear; clc; close all; tic;
 % =========================================================================
 %% 定义计算区域和模型基本参数
-
+path.Project_PATH = 'D:\codes\Deformation'; % 更改路径
+addpath(fullfile(path.Project_PATH, 'Okada'));
 % 设置观测点网格
 grid_extent = 40; % 计算区域边长的一半 (km)
 grid_points = 101; % 网格点数量
@@ -177,7 +178,7 @@ for i = 1:length(dip_var_open)
     plot_deformation(E, N, u_open{i,1}, u_open{i,2}, u_open{i,3}, fault_open, sprintf('Dip = %d°', fault_open.dip), c_lim_open);
 end
 sgtitle('张性断层 (Opening=1m) 在不同倾角下的形变特征', 'FontSize', 16, 'FontWeight', 'bold')
-
+rmpath(fullfile(path.Project_PATH, 'Okada'));
 elapsedTime = toc; fprintf('Elapsed time: %.6f seconds\n', elapsedTime);
 
 % =========================================================================
