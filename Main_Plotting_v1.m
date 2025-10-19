@@ -9,30 +9,19 @@
 clear; clc; close all; tic;
 %% Setting
 % Path 
-path.Project_PATH = 'D:\codes\Deformation'; 
+path.Project_PATH = 'D:\codes\Deformation';
 path.Output_PATH = fullfile(path.Project_PATH, 'Results');
+path.Figure_PATH = fullfile(path.Output_PATH, 'Figures');
+if ~exist(path.Figure_PATH, 'dir'), mkdir(path.Figure_PATH); end
 addpath(fullfile(path.Project_PATH, 'Function'));
 
-% Figure
-plot_mode = 'both'; %  Can be 'single', 'group', 'both'.
-
-% Output directory
-path.Figure_PATH_Single = fullfile(path.Output_PATH, 'Figures_Single');
-path.Figure_PATH_Group = fullfile(path.Output_PATH, 'Figures_Group');
-if strcmp(plot_mode, 'single') || strcmp(plot_mode, 'both')
-    if ~exist(path.Figure_PATH_Single, 'dir'), mkdir(path.Figure_PATH_Single); end
-end
-if strcmp(plot_mode, 'group') || strcmp(plot_mode, 'both')
-    if ~exist(path.Figure_PATH_Group, 'dir'), mkdir(path.Figure_PATH_Group); end
-end
-
-% Configuration
+% Configuration 
 plotting_config.axes.font_size = 12;
-plotting_config.axes.box = 'on';
+plotting_config.axes.box = 'on'; 
 plotting_config.axes.grid = 'on';
 
 plotting_config.quiver.skip = 10; % Plot one vector every 'skip' points
-plotting_config.quiver.scale = 1;
+plotting_config.quiver.scale = 1.5;
 plotting_config.quiver.color = 'k';
 plotting_config.quiver.line_width = 1.0;
 
@@ -59,31 +48,40 @@ end
 fprintf('--- Loading: %s ---\n', filename);
 load(fullfile(pathname, filename));
 
-%% Plotting 
-% mode 1: single figures
-if strcmp(plot_mode, 'single') || strcmp(plot_mode, 'both')
-    fprintf('\n--- Generating single figures... ---\n');
-    plot_Single_Models(Fault, E, N, varying_params_names, plotting_config, path);
+%% Plotting
+fprintf('--- %d models to plot. Generating figures... ---\n', num_models);
+% Pre-calculate a unified color limit 
+max_abs_uz = 0;
+for i = 1:num_models
+    max_abs_uz = max(max_abs_uz, max(abs(Fault{i}.deformation.uZ(:))));
 end
+c_lim = max_abs_uz;
+if c_lim == 0, c_lim = 1; end % Avoid error if all values are zero
 
-% mode 2: group figures
-if strcmp(plot_mode, 'group') || strcmp(plot_mode, 'both')
-    fprintf('\n--- Generating group figures... ---\n');
-    
-    % 1. 将模型参数转换为一个易于查询的table
-    all_params_struct = cellfun(@(c) c.model_parameters, Fault, 'UniformOutput', false);
-    all_params_table = struct2table(vertcat(all_params_struct{:}));
-
-    % 2. 调用函数，将所有模型智能分组
-    plot_groups = generate_Group_Models(all_params_table, varying_params_names);
-
-    % 3. 遍历每一个分组，并调用独立的绘图函数生成图像
-    for i = 1:length(plot_groups)
-        plot_Group_Models(plot_groups{i}, Fault, E, N, plotting_config, path);
+% plot
+for i = 1:num_models
+    current_fault = Fault{i};    
+    % figure name
+    if exist('varying_params_names', 'var') && ~isempty(varying_params_names)
+        param_strs = cellfun(@(p) sprintf('%s=%.1f', p, current_fault.model_parameters.(p)), ...
+                             varying_params_names, 'UniformOutput', false); % 用cellfun避免了一次小循环
+        figure_name = strjoin(param_strs, '; ');
+    else
+        figure_name = 'Base_Fault';
     end
+
+    % 
+    fig = figure('Visible', 'off', 'Position',[100, 100, 800, 650]);
+    plot_Fault_Deformation(gca, current_fault, E, N, c_lim, figure_name, plotting_config);
+    % 
+    fig_name = strrep(figure_name, '; ', '_'); % 图片文件名用-连接 图片标题用;连接
+    fig_name = strrep(fig_name, '=', '');
+    fig_filename = sprintf('Surf_Deformation_%s.%s', fig_name, plotting_config.save_format);
+    saveas(fig, fullfile(path.Figure_PATH, fig_filename));    
+    close(fig);
 end
 
 %% Ending
-fprintf('\n--- All plotting tasks complete! ---\n');
+fprintf('--- Plotting complete! Figures saved to: \n  %s\n', path.Figure_PATH);
 rmpath(fullfile(path.Project_PATH, 'Function'));
 elapsedTime = toc; fprintf('Elapsed time: %.6f seconds\n', elapsedTime);

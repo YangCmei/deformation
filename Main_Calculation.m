@@ -41,12 +41,12 @@ setting.grid.points = 101;       % 网格点数
 % Base fault model
 % 使用 [start, end, step] 或单个值来定义
 base_fault.strike = 45;           % degree
-base_fault.dip    = [30, 50, 10]; % degree
+base_fault.dip    = [10, 85, 5]; % degree
 base_fault.length = 25;           % km
 base_fault.width  = 10;           % km
-base_fault.depth  = 10;           % km
-base_fault.rake   = [10,80,10];   % degree
-base_fault.slip   = 1;            % m
+base_fault.depth  = [5,15,1];           % km
+base_fault.rake   = [10,85,5];   % degree
+base_fault.slip   = [0.5,1.5,0.1];            % m
 base_fault.open   = 0;            % m
 base_fault.nu     = 0.25;
 

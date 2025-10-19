@@ -1,19 +1,23 @@
-function plot_Deformation_Map(ax, E, N, uZ, uE, uN, c_lim, config)
+function plot_3D_Field_Map(ax, E, N, uZ, uE, uN, c_lim, config)
     % --- Generic Core Plotting Function ---
-    % This function's sole responsibility is to visualize 2D field data.
+    % This function's sole responsibility is to visualize 3D field data.
     % Pre-open a figure and pass its handle as an argument to this function.
     
     hold(ax, 'on');
     % Vertical displacement (uZ) as a color map
     pcolor(ax, E, N, uZ);
     shading(ax, 'interp');
-    cbar = colorbar(ax);
-    ylabel(cbar, 'Vertical Displacement (m)');
+    
+    % 只有当config中明确指示要显示时，才创建色柱
+    if isfield(config, 'colorbar') && isfield(config.colorbar, 'show') && config.colorbar.show
+        cbar = colorbar(ax);
+        ylabel(cbar, 'Vertical Displacement (m)');
+    end    
     colormap(ax, config.colormap);
 
     % Unify color axis if c_lim is provided
-    if nargin > 6 && ~isempty(c_lim) && c_lim > 0
-        clim(ax, [-c_lim, c_lim]);
+    if nargin > 6 && ~isempty(c_lim) && all(isfinite(c_lim)) && c_lim(end) > 0
+        clim(ax, [-c_lim(end), c_lim(end)]);
     end
 
     % Contour lines

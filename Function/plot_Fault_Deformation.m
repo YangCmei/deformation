@@ -11,7 +11,7 @@ function plot_Fault_Deformation(ax, current_fault, E, N, c_lim, figure_name, con
     model_params = current_fault.model_parameters;
 
     % Call the generic plotting function to draw the data fields
-    plot_Deformation_Map(ax, E, N, deformation.uZ, deformation.uE, deformation.uN, c_lim, config);    
+    plot_3D_Field_Map(ax, E, N, deformation.uZ, deformation.uE, deformation.uN, c_lim, config);    
     hold(ax, 'on'); 
    
     % Fault trace
