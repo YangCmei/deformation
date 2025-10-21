@@ -23,25 +23,28 @@ function plot_Group_Models(group_info, Fault, E, N, plotting_config, path)
     % Step 3: Prepare the figure and tiled layout
     ncols = ceil(sqrt(num_subplots));
     nrows = ceil(num_subplots / ncols);
-    fig = figure('Visible', 'off', 'Position', [100, 100, 450 * ncols + 80, 400 * nrows]);
-    t = tiledlayout(nrows, ncols, 'TileSpacing', 'compact', 'Padding', 'compact');
-
+    fig = figure('Visible', 'off', 'Position', [50, 50, 1100, 1400]);
+    % tiledlayout('flow', 'TileSpacing', 'compact', 'Padding', 'compact');
+    
     % Step 4: Draw each subplot
-    plotting_config.colorbar.show = false; % 确保业务函数不创建独立色柱
+    % Ensure the called function does not draw its own colorbar, we'll add it manually.
+    plotting_config.colorbar.show = false; 
+    
     for s_idx = 1:num_subplots
-        ax = nexttile;
+        ax = subplot(nrows, ncols, s_idx);
         model_idx = model_indices(s_idx);
         current_fault = Fault{model_idx};
         subplot_title = sprintf('%s = %.1f', param_to_plot, sorted_values(s_idx));
         
+        % Plot the deformation data
         plot_Fault_Deformation(ax, current_fault, E, N, c_lim_group, subplot_title, plotting_config);
+        
+        % After plotting, add a colorbar only to the first subplot, inspired by s4.m
+        if s_idx == 1
+            colorbar(ax);
+        end
     end
-
-    % Step 5: Add a shared colorbar and main title
-    cb = colorbar;
-    cb.Layout.Tile = 'east';
-    ylabel(cb, 'Vertical Displacement (m)');
-    
+    % Step 5: Main title for the entire figure
     fixed_param_names = fieldnames(fixed_params);
     figure_title_parts = cell(1, length(fixed_param_names));
     for i = 1:length(fixed_param_names)
@@ -50,9 +53,10 @@ function plot_Group_Models(group_info, Fault, E, N, plotting_config, path)
         figure_title_parts{i} = sprintf('%s=%.1f', param_name, param_val);
     end
     main_title = strjoin(figure_title_parts, '; ');
-    title(t, main_title, 'Interpreter', 'none', 'FontWeight', 'bold');
-
-    % Step 6: figure name 
+    sgtitle(main_title, 'Interpreter', 'none', 'FontWeight', 'bold');
+    % title(main_title, 'Interpreter', 'none', 'FontWeight', 'bold');
+    
+    % Step 6: filename  
     filename_parts = cell(1, 1 + length(fixed_param_names));
     filename_parts{1} = sprintf('Surf-Deformation-%s', param_to_plot);
     for i = 1:length(fixed_param_names)
