@@ -4,7 +4,9 @@
 %   fault parameters on surface deformation. It automatically generates
 %   all possible combinations of user-defined fault parameter ranges and
 %   calculates the resulting surface deformation using the Okada 1985 model.
-%   The results are saved to a .mat file for later visualization.
+%   It also analyzes these combinations to create 'plot_groups' for
+%   comparative visualization. All results ('Fault' array and 'plot_groups')
+%   are saved to a single .mat file for later use by Main_Plotting.m.
 %
 % Author: YangChunmei (SCSIO, UCAS)
 % Email:  yangcmei12138@gmail.com
@@ -15,7 +17,8 @@
 %   okada85.m, generateFaultModels.m: Must be in the MATLAB path.
 %
 % Usage:
-%   1. Define all study parameters in the 'Setting' section below.
+%   1. Modify 'path.Project_PATH' and 'path.Output_PATH' and define all 
+%      fault parameters in the 'Setting' section below.
 %   2. For parameters to be varied, use a 3-element vector [start, end, step]
 %      or a vector of discrete values (e.g., [0, 90, 180]).
 %   3. For fixed parameters, provide a single numeric value.
@@ -26,7 +29,7 @@ clear; clc; close all; tic;
 % Path
 path.Project_PATH = 'D:\codes\Deformation'; % 更改路径
 path.Output_PATH = fullfile(path.Project_PATH, 'Results'); % 参数组合数据保存路径
-%path.Figure_PATH = fullfile(path.Output_PATH, 'Figures');   % 图像保存路径
+%path.Figure_PATH = fullfile(path.Output_PATH, 'Figures');   
 % Add function
 addpath(fullfile(path.Project_PATH, 'Okada'));
 addpath(fullfile(path.Project_PATH, 'Function'));
