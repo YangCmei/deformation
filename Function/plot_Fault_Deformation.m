@@ -14,21 +14,29 @@ function plot_Fault_Deformation(ax, current_fault, E, N, c_lim, figure_name, con
     plot_3D_Field_Map(ax, E, N, deformation.uZ, deformation.uE, deformation.uN, c_lim, config);    
     hold(ax, 'on'); 
    
-    % Fault trace
-    L_half = model_params.length / 2;
-    alpha = (90 - model_params.strike) * pi / 180;
-    x_trace = [-L_half, L_half] * cos(alpha);
-    y_trace = [-L_half, L_half] * sin(alpha);
-    plot(ax, x_trace, y_trace, 'Color', config.fault.color, 'LineWidth', config.fault.line_width);
-    
-    % Mark the dip direction on the hanging wall
-    if model_params.dip ~= 90
-        dip_dir_x = 0.1 * L_half * sin(alpha);
-        dip_dir_y = -0.1 * L_half * cos(alpha);
-        plot(ax, [0, dip_dir_x], [0, dip_dir_y], 'v', 'Color', config.fault.color, ...
-            'LineWidth', 2, 'MarkerFaceColor', config.fault.color, 'MarkerSize', config.fault.dip_marker_size);
-    end
+   % Fault trace
+    L = model_params.length;
+    W = model_params.width;
+    strike_rad = model_params.strike * pi / 180;
+    dip_rad = model_params.dip * pi / 180;
+    % 断层上缘中点在地表的投影位置
+    horizontal_offset = (W/2) * cos(dip_rad);
+    top_center_x = -horizontal_offset * cos(strike_rad);
+    top_center_y = horizontal_offset * sin(strike_rad);
 
+    % 以断层上缘中点为中心，沿着走向方向计算迹线端点
+    x_trace = [-L/2 * sin(strike_rad),  L/2 * sin(strike_rad)] + top_center_x;
+    y_trace = [-L/2 * cos(strike_rad), L/2 * cos(strike_rad)] + top_center_y;
+    % 
+    plot(ax, x_trace, y_trace,'Color', config.fault.color, 'LineWidth', config.fault.line_width);
+
+    % Mark the dip direction on the hanging wall  
+    if model_params.dip ~= 90  % 仅对于非垂直断层
+        plot([top_center_x, 0], [top_center_y, 0], '-', 'Color', config.fault.color, ...
+            'LineWidth', config.fault.line_width, 'MarkerFaceColor', config.fault.color, ...
+            'MarkerSize', config.fault.dip_marker_size);      
+    end    
+    
     % Axes
     axis(ax, 'equal');
     xlim(ax, [min(E(:)), max(E(:))]);

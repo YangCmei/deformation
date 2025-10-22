@@ -62,14 +62,21 @@ function plot_Group_Models(group_info, Fault, E, N, plotting_config, path)
     for i = 1:length(fixed_param_names)
         param_name = fixed_param_names{i};
         param_val = fixed_params.(param_name);
-        filename_parts{i+1} = sprintf('%s_%.0f', param_name, param_val);
+        % 1. 将数值转换为字符串 (e.g., 0.1 -> '0.1', -10 -> '-10')
+        val_str = num2str(param_val);        
+        % 2. 替换字符串中的非法字符，使其适用于文件名
+        val_str = strrep(val_str, '.', 'p'); % 替换小数点 (e.g., '0.1' -> '0p1')
+        val_str = strrep(val_str, '-', 'neg');% 替换负号 (e.g., '-10' -> 'neg10')
+        val_str = strrep(val_str, ' ', '');  % 移除可能的空格
+        
+        filename_parts{i+1} = sprintf('%s_%s', param_name, val_str);
     end
     
     fig_name_base = strjoin(filename_parts, '_');
-    fig_name_base = strrep(fig_name_base, '.', 'p');
+    % fig_name_base = strrep(fig_name_base, '.', 'p');
     fig_filename = sprintf('%s.%s', fig_name_base, plotting_config.save_format);
+      
     % save
     saveas(fig, fullfile(path.Figure_PATH_Group, fig_filename));
-    close(fig);
-    fprintf('  Saved figure: %s\n', fig_filename);
+    close(fig); fprintf('  Saved figure: %s\n', fig_filename);
 end
