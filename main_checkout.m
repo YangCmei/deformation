@@ -23,20 +23,21 @@ y_coords = linspace(-grid_extent, grid_extent, grid_points); % N-S 方向 (km)
 base_fault.strike = 45;     % degree
 base_fault.length = 25;     % km
 base_fault.width = 10;      % km
-base_fault.depth = 10;      % km
+base_fault.depth = 15;      % km
 base_fault.slip = 1;        % m
 base_fault.open = 0;        % m
 base_fault.nu = 0.25;       
 
 %% Rake
 % 通过改变rake来模拟不同类型的断层运动
-rake_var = [0, 180, 90, -90]; % 0:左旋走滑, 180:右旋走滑, 90:逆冲, -90:正断
-titles_rake = {'Left-Lateral Strike-Slip (Rake = 0°)', ...
-          'Right-Lateral Strike-Slip (Rake = 180°)', ...
-          'Reverse Fault (Rake = 90°)', ...
-          'Normal Fault (Rake = -90°)'};
+%rake_var = [0, 180, 90, -90]; % 0:左旋走滑, 180:右旋走滑, 90:逆冲, -90:正断
+rake_var = [0,10, 20, 30,40,50,60,70,80,90];
+%titles_rake = {'Left-Lateral Strike-Slip (Rake = 0°)', ...
+%          'Right-Lateral Strike-Slip (Rake = 180°)', ...
+%          'Reverse Fault (Rake = 90°)', ...
+%          'Normal Fault (Rake = -90°)'};
 fault_rake = base_fault; 
-fault_rake.dip = 80; % 对走滑断层使用较陡的倾角
+fault_rake.dip = 45; % 对走滑断层使用较陡的倾角
 
 u_rake = cell(length(rake_var), 3); % {uE, uN, uZ}
 all_uz_rake = [];
@@ -58,15 +59,16 @@ for i = 1:length(rake_var)
     nexttile;  % 自动放置下一个子图
     % subplot(2, 2, i);
     fault_rake.rake = rake_var(i); 
-    plot_deformation(E, N, u_rake{i,1}, u_rake{i,2}, u_rake{i,3}, fault_rake, titles_rake{i}, c_lim_rake);
+    %plot_deformation(E, N, u_rake{i,1}, u_rake{i,2}, u_rake{i,3}, fault_rake, titles_rake{i}, c_lim_rake);
+    plot_deformation(E, N, u_rake{i,1}, u_rake{i,2}, u_rake{i,3}, fault_rake, sprintf('Rake = %d°', fault_rake.rake), c_lim_rake);
 end
 sgtitle({'Deformation in Fault Types(Rake)','(Dip=80°)'}, 'FontSize', 16, 'FontWeight', 'bold');
 
 %% Dip
 % 针对逆冲断层，观察不同倾角下的形变特征
-dip_var = [10, 20, 30, 40, 50, 60, 70, 80, 90]; % 浅倾角, 中等倾角, 垂直
+dip_var = [5,15, 25, 35, 45, 55, 65, 75, 85]; % 浅倾角, 中等倾角, 垂直
 fault_dip = base_fault;
-fault_dip.rake = 90; % 固定为逆冲断层
+fault_dip.rake = 10; % 固定为逆冲断层
 
 u_dip = cell(length(dip_var), 3);
 all_uz_dip = [];
@@ -91,14 +93,14 @@ for i = 1:length(dip_var)
     fault_dip.dip = dip_var(i);
     plot_deformation(E, N, u_dip{i,1}, u_dip{i,2}, u_dip{i,3}, fault_dip, sprintf('Dip = %d°', fault_dip.dip), c_lim_dip);
 end
-sgtitle('Deformation for Reverse Fault (Rake = 90°)in Dip', 'FontSize', 16, 'FontWeight', 'bold');
+sgtitle('depth=15.0 km, rake=10.0°, slip=1.0m', 'FontSize', 16, 'FontWeight', 'bold');
 
 %% Source Depth
 % 观察同一断层在不同深度时，地表形变幅度和范围的变化
-depth_var = [5, 10, 15, 20]; 
+depth_var = [5, 10, 15, 25, 40]; 
 fault_open = base_fault;
 fault_open.rake = 90; % 固定为逆冲断层
-fault_open.dip = 60;
+fault_open.dip = 45;
 
 u_depth = cell(length(depth_var), 3);
 all_uz_depth = [];
@@ -157,6 +159,38 @@ for i = 1:length(dip_var_open)
 end
 sgtitle('Deformation for Opening Fault in Dip', 'FontSize', 16, 'FontWeight', 'bold')
 
+%% Slip
+% 观察同一断层在不同滑动量时，地表形变幅度和范围的变化
+slip_var = [0.5, 1.5]; 
+fault_slip = base_fault;
+fault_slip.rake = 30; 
+fault_slip.dip = 75;
+
+u_slip = cell(length(slip_var), 3);
+all_uz_slip = [];
+for i = 1:length(slip_var)
+    fault_slip.slip = slip_var(i);
+    [uE, uN, uZ] = okada85(E, N, fault_slip.depth, fault_slip.strike, fault_slip.dip, ...
+                         fault_slip.length, fault_slip.width, fault_slip.rake, ...
+                         fault_slip.slip, fault_slip.open, fault_slip.nu);
+    u_slip{i, 1} = uE;
+    u_slip{i, 2} = uN;
+    u_slip{i, 3} = uZ;
+    all_uz_slip = [all_uz_slip; uZ(:)];
+end
+c_lim_slip = max(abs(all_uz_slip));
+
+% plot
+figure('Name', 'Deformation of Fault Slip', 'Position', [175, 175, 1200, 500]);
+tiledlayout('flow'); 
+for i = 1:length(slip_var)
+    nexttile;
+    % subplot(1, 3, i);
+    fault_slip.slip = slip_var(i);
+    plot_deformation(E, N, u_slip{i,1}, u_slip{i,2}, u_slip{i,3}, fault_slip, sprintf('Slip = %.1f m', fault_slip.slip), c_lim_slip);
+end
+sgtitle('rake=30°,dip=75°,depth=8km', 'FontSize', 16, 'FontWeight', 'bold');
+
 %% Ending
 rmpath(fullfile(path.Project_PATH, 'Okada'));
 elapsedTime = toc; fprintf('Elapsed time: %.6f seconds\n', elapsedTime);
@@ -185,11 +219,13 @@ function plot_deformation(E, N, uE, uN, uZ, fault_parameter, plot_title, c_lim)
     % Contour lines
     contour(E, N, uZ, 7, 'k-');
 
+    scale_user = 50;  % 把位移放大 50 倍来画
     % Horizontal displacement vector (quiver)
     skip = 10; % 每隔 skip 个点绘制一个箭头，避免图像过于密集
-    quiver(E(1:skip:end, 1:skip:end), N(1:skip:end, 1:skip:end), ...
-           uE(1:skip:end, 1:skip:end), uN(1:skip:end, 1:skip:end), ...
+    h = quiver(E(1:skip:end, 1:skip:end), N(1:skip:end, 1:skip:end), ...
+           scale_user*uE(1:skip:end, 1:skip:end), scale_user*uN(1:skip:end, 1:skip:end), ...
            'k', 'LineWidth', 1);
+    h.AutoScale = 'off';               % 关闭自动缩放
 
     % Fault trace
     L = fault_parameter.length;

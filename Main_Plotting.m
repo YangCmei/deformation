@@ -32,7 +32,7 @@ plotting_config.axes.box = 'on';
 plotting_config.axes.grid = 'on';
 
 plotting_config.quiver.skip = 10; % Plot one vector every 'skip' points
-plotting_config.quiver.scale = 1.5;
+plotting_config.quiver.factor = 50;
 plotting_config.quiver.color = 'k';
 plotting_config.quiver.line_width = 0.8;
 
